@@ -6,7 +6,6 @@ const DEBUG = false;
 const demosSection = document.getElementById("demos");
 let poseLandmarker = undefined;
 let runningMode = "IMAGE";
-let enableWebcamButton;
 const videoHeight = "360px";
 const videoWidth = "480px";
 // Before we can use PoseLandmarker class we must wait for it to finish
@@ -143,17 +142,11 @@ async function predictWebcam() {
       for (const landmark of result.landmarks) {
         // landmark is array of landmarks
         // shoulder, hip, knee https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker#pose_landmarker_model
-        //console.log(landmark[0]);
-        var angle = calculateAngle(landmark[11], landmark[23], landmark[25]);
-
-        // chair upright: good: 113-117, bad: 120-135
-        // chair back: 115-125
-        var postureAngle = calculateAngle(
-          landmark[0],
-          averagePoint(landmark[7], landmark[8]),
-          averagePoint(landmark[11], landmark[12])
+        var angle = calculateAngle(
+            averagePoint(landmark[11], landmark[12]),
+            averagePoint(landmark[23], landmark[24]),
+            averagePoint(landmark[25], landmark[26])
         );
-        console.log(postureAngle);
 
         window.lastAngles.push({angle: angle, ts: performance.now()});
         window.lastAngles = window.lastAngles.filter(function (obj) {
@@ -162,33 +155,47 @@ async function predictWebcam() {
         var smoothedAngle = computeAverage(window.lastAngles.map(function (obj) {
           return obj.angle;
         }));
-        document.getElementById("angle").innerText = smoothedAngle;
+        if (DEBUG) {
+          document.getElementById("angle").innerText = smoothedAngle;
+        }
 
-        if ([landmark[11], landmark[23], landmark[25]].every(function (obj) {
+        if ([
+          landmark[11],
+          landmark[12],
+          landmark[23],
+          landmark[24],
+          landmark[25],
+          landmark[26],
+        ].every(function (obj) {
           return obj.x >= 0 && obj.x <= 1 && obj.y >= 0 && obj.y <= 1;
         })) {
           document.getElementById("visible").innerText = "yes";
           var phase = document.getElementById("phase").innerText;
-          if (phase === "up" && smoothedAngle < 110) {
-            phase = "down";
-          } else if (phase === "down" && smoothedAngle > 165) {
+
+          var newPhase;
+          if (smoothedAngle < 110) {
+            newPhase = "down";
+          } else {
+            newPhase = "up";
+          }
+
+          if (phase === "down" && newPhase === "up") {
             chrome.storage.local.get(
               ['power'],
               function(result) {
                 chrome.storage.local.set({power: result.power + 1});
                 chrome.action.setBadgeText({text: (result.power + 1).toString()});
-                if (result.power + 1 > 1) {
+                if (result.power + 1 > 0) {
                   chrome.action.setBadgeBackgroundColor({color: '#fdf6e3'});
                 }
             });
-            phase = "up";
           }
-          document.getElementById("phase").innerText = phase;
+          document.getElementById("phase").innerText = newPhase;
         } else {
           document.getElementById("visible").innerText = "no";
+          document.getElementById("phase").innerText = "?";
         }
 
-        //console.log(calculateAngle(landmark[11], landmark[23], landmark[25]))
         if (DEBUG) {
           drawingUtils.drawLandmarks(landmark, {
             radius: (data) => DrawingUtils.lerp(data.from.z, -0.15, 0.1, 5, 1)

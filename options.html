@@ -1,37 +1,42 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <style>
-      #container {
-        margin: 0px auto;
-        width: 500px;
-        height: 375px;
-        border: 10px #333 solid;
-      }
-      #videoElement {
-        width: 500px;
-        height: 375px;
-        background-color: #666;
-      }
-      #status {
-        font-style: italic;
-      }
-    </style>
-    <script src="vendor/ml5.js"></script>
-    <script src="vendor/p5.js"></script>
-    <title>Options | Human Powered</title>
+    <title>Do Exercises</title>
   </head>
-  <body>
-    <section id="demos">
+  <body style="background-color: #fdf6e3">
+    <h1>Do squats</h1>
+    <section id="demos" style="display: flex; justify-content: center">
       <div id="liveView" class="videoView">
         <div style="position: relative;">
           <video id="webcam" style="width: 1280px; height: 720px; position: abso" autoplay playsinline></video>
           <canvas class="output_canvas" id="output_canvas" width="1280" height="720" style="position: absolute; left: 0px; top: 0px;"></canvas>
         </div>
       </div>
-      <span id="angle"></span>
-      <span id="phase" style="font-size: 100px">up</span>
-      <span id="visible" style="font-size: 100px">no</span>
+
     </section>
+
+    <section style="display: flex; justify-content: center; font-size: 60px;">
+      <div>
+      <span id="angle"></span>
+      <br />
+      Position: <span id="phase">up</span>
+      <br />
+      Body visible in frame: <span id="visible">no</span>
+      </div>
+    </section>
+
+    <section>
+      <h2>Options</h2>
+      <label for="trigger">Trigger only for blank new tabs:</label>
+      <input type="checkbox" id="trigger" />
+
+      <br />
+
+      <label for="cost">Power cost per tab:</label>
+      <input type="text" id="cost" />
+    </section>
+
     <script src="script.js" type="module"></script>
+    <script src="options.js"></script>
+  </body>
 </html>
