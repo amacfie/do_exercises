@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      #container {
+        margin: 0px auto;
+        width: 500px;
+        height: 375px;
+        border: 10px #333 solid;
+      }
+      #videoElement {
+        width: 500px;
+        height: 375px;
+        background-color: #666;
+      }
+      #status {
+        font-style: italic;
+      }
+    </style>
+    <script src="vendor/ml5.js"></script>
+    <script src="vendor/p5.js"></script>
+    <title>Options | Human Powered</title>
+  </head>
+  <body>
+    <section id="demos">
+      <div id="liveView" class="videoView">
+        <div style="position: relative;">
+          <video id="webcam" style="width: 1280px; height: 720px; position: abso" autoplay playsinline></video>
+          <canvas class="output_canvas" id="output_canvas" width="1280" height="720" style="position: absolute; left: 0px; top: 0px;"></canvas>
+        </div>
+      </div>
+      <span id="angle"></span>
+      <span id="phase" style="font-size: 100px">up</span>
+      <span id="visible" style="font-size: 100px">no</span>
+    </section>
+    <script src="script.js" type="module"></script>
+</html>
