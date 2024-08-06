@@ -5,6 +5,8 @@
 
 [![GitHub](https://badgen.net/badge/icon/github?icon=github&label)](https://github.com/amacfie/do_exercises/)
 
+[![Install on Chrome](https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/iNEddTyWiMfLSwFD6qGq.png)](https://chromewebstore.google.com/detail/do-exercises/ehoeoiinemmhjpjhgggiogeofpjifhbp)
+
 Dev install: Clone then follow instructions
 [here](https://webkul.com/blog/how-to-install-the-unpacked-extension-in-chrome/)
 
