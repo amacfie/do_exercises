@@ -1,7 +1,7 @@
 // MediaPipe example: https://codepen.io/mediapipe-preview/pen/abRLMxN
 import { PoseLandmarker, FilesetResolver, DrawingUtils } from "./vendor/mediapipe.js";
 
-const DEBUG = true;
+const DEBUG = false;
 const MIN_ANGLE_FRAMES = 2;
 const SAMPLE_WINDOW = 500;
 
