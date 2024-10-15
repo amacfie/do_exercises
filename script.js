@@ -1,7 +1,9 @@
 // MediaPipe example: https://codepen.io/mediapipe-preview/pen/abRLMxN
 import { PoseLandmarker, FilesetResolver, DrawingUtils } from "./vendor/mediapipe.js";
 
-const DEBUG = false;
+const DEBUG = true;
+const MIN_ANGLE_FRAMES = 2;
+const SAMPLE_WINDOW = 500;
 
 const demosSection = document.getElementById("demos");
 let poseLandmarker = undefined;
@@ -138,9 +140,29 @@ async function predictWebcam() {
     poseLandmarker.detectForVideo(video, startTimeMs, (result) => {
       canvasCtx.save();
       canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-      //console.log(result);
-      for (const landmark of result.landmarks) {
-        // landmark is array of landmarks
+      if (DEBUG) {
+        console.log(result);
+      }
+      let landmark = result.landmarks[0]; // landmark is array of landmarks
+      if (!landmark) {
+        if (DEBUG) {
+          document.getElementById("angle").innerText = "?";
+        }
+        document.getElementById("phase").innerText = "?";
+        return;
+      }
+      if ([
+        landmark[11],
+        landmark[12],
+        landmark[23],
+        landmark[24],
+        landmark[25],
+        landmark[26],
+      ].every(function (obj) {
+        return obj.x >= 0 && obj.x <= 1 && obj.y >= 0 && obj.y <= 1;
+      })) {
+        document.getElementById("visible").innerText = "yes";
+
         // shoulder, hip, knee https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker#pose_landmarker_model
         var angle = calculateAngle(
             averagePoint(landmark[11], landmark[12]),
@@ -150,8 +172,15 @@ async function predictWebcam() {
 
         window.lastAngles.push({angle: angle, ts: performance.now()});
         window.lastAngles = window.lastAngles.filter(function (obj) {
-          return obj.ts >= performance.now() - 500; // msec
+          return obj.ts >= performance.now() - SAMPLE_WINDOW; // msec
         });
+        if (window.lastAngles.length < MIN_ANGLE_FRAMES) {
+          if (DEBUG) {
+            document.getElementById("angle").innerText = "?";
+          }
+          document.getElementById("phase").innerText = "?";
+          return;
+        }
         var smoothedAngle = computeAverage(window.lastAngles.map(function (obj) {
           return obj.angle;
         }));
@@ -159,49 +188,42 @@ async function predictWebcam() {
           document.getElementById("angle").innerText = smoothedAngle;
         }
 
-        if ([
-          landmark[11],
-          landmark[12],
-          landmark[23],
-          landmark[24],
-          landmark[25],
-          landmark[26],
-        ].every(function (obj) {
-          return obj.x >= 0 && obj.x <= 1 && obj.y >= 0 && obj.y <= 1;
-        })) {
-          document.getElementById("visible").innerText = "yes";
-          var phase = document.getElementById("phase").innerText;
+        var phase = document.getElementById("phase").innerText;
 
-          var newPhase;
-          if (smoothedAngle < 110) {
-            newPhase = "down";
-          } else {
-            newPhase = "up";
-          }
-
-          if (phase === "down" && newPhase === "up") {
-            chrome.storage.local.get(
-              ['power'],
-              function(result) {
-                chrome.storage.local.set({power: result.power + 1});
-                chrome.action.setBadgeText({text: (result.power + 1).toString()});
-                if (result.power + 1 > 0) {
-                  chrome.action.setBadgeBackgroundColor({color: '#fdf6e3'});
-                }
-            });
-          }
-          document.getElementById("phase").innerText = newPhase;
+        var newPhase;
+        if (smoothedAngle < 110) {
+          newPhase = "down";
+        } else if (smoothedAngle > 130) {
+          newPhase = "up";
         } else {
-          document.getElementById("visible").innerText = "no";
-          document.getElementById("phase").innerText = "?";
+          newPhase = phase;
         }
 
-        if (DEBUG) {
-          drawingUtils.drawLandmarks(landmark, {
-            radius: (data) => DrawingUtils.lerp(data.from.z, -0.15, 0.1, 5, 1)
+        if (phase === "down" && newPhase === "up") {
+          chrome.storage.local.get(
+            ['power'],
+            function(result) {
+              chrome.storage.local.set({power: result.power + 1});
+              chrome.action.setBadgeText({text: (result.power + 1).toString()});
+              if (result.power + 1 > 0) {
+                chrome.action.setBadgeBackgroundColor({color: '#fdf6e3'});
+              }
           });
-          drawingUtils.drawConnectors(landmark, PoseLandmarker.POSE_CONNECTIONS);
         }
+        document.getElementById("phase").innerText = newPhase;
+      } else {
+        document.getElementById("visible").innerText = "no";
+        if (DEBUG) {
+          document.getElementById("angle").innerText = "?";
+        }
+        document.getElementById("phase").innerText = "?";
+      }
+
+      if (DEBUG) {
+        drawingUtils.drawLandmarks(landmark, {
+          radius: (data) => DrawingUtils.lerp(data.from.z, -0.15, 0.1, 5, 1)
+        });
+        drawingUtils.drawConnectors(landmark, PoseLandmarker.POSE_CONNECTIONS);
       }
       canvasCtx.restore();
     });

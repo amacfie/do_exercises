@@ -1,6 +1,6 @@
 {
   "name": "Do Exercises",
-  "version": "0.1",
+  "version": "0.2",
   "description": "Do exercises to keep Chrome running",
   "permissions": [
     "storage",
